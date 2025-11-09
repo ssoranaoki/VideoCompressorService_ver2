@@ -1,34 +1,34 @@
-# VideoCompressorService User Guide
+# VideoCompressorService ユーザーガイド
 
-## Overview
+## 概要
 
-VideoCompressorService is a client-server application that allows you to upload video files and perform various processing operations. The service uses a custom binary protocol (MMP - Multiple Media Protocol) over TCP for reliable communication between client and server.
+VideoCompressorServiceは、動画ファイルをアップロードして様々な処理を行うことができるクライアント・サーバーアプリケーションです。このサービスは、クライアントとサーバー間の信頼性の高い通信のために、TCP上でカスタムバイナリプロトコル（MMP - Multiple Media Protocol）を使用しています。
 
-## Features
+## 機能
 
-The service supports the following video processing operations:
+このサービスは以下の動画処理機能をサポートしています：
 
-1. **Compress** - Reduce video file size with automatic quality optimization
-2. **Resize** - Change video resolution to standard formats
-3. **Aspect Ratio** - Modify video aspect ratio with letterbox or stretch modes
-4. **Convert to Audio** - Extract audio from video and save as MP3
-5. **Create Clips** - Generate GIF or WEBM clips from specific time ranges
+1. **圧縮** - 自動品質最適化により動画ファイルサイズを削減
+2. **解像度変更** - 標準フォーマットへの動画解像度変更
+3. **アスペクト比変更** - レターボックスまたはストレッチモードでのアスペクト比変更
+4. **音声抽出** - 動画から音声を抽出してMP3として保存
+5. **クリップ作成** - 特定の時間範囲からGIFまたはWEBMクリップを生成
 
-All video processing is performed using FFmpeg, supporting all formats that FFmpeg supports.
+すべての動画処理はFFmpegを使用して実行され、FFmpegがサポートするすべてのフォーマットに対応しています。
 
-## Requirements
+## 必要要件
 
-### System Requirements
+### システム要件
 
-- Python 3.10 or higher
-- FFmpeg installed and available in system PATH
+- Python 3.10以上
+- FFmpegがインストールされ、システムPATHで利用可能であること
 
-### Python Dependencies
+### Python依存関係
 
-- asyncio (built-in)
-- Standard library modules: json, os, datetime, subprocess
+- asyncio（組み込み）
+- 標準ライブラリモジュール：json、os、datetime、subprocess
 
-### Installing FFmpeg
+### FFmpegのインストール
 
 **Ubuntu/Debian:**
 ```bash
@@ -42,74 +42,74 @@ brew install ffmpeg
 ```
 
 **Windows:**
-Download from [ffmpeg.org](https://ffmpeg.org/download.html) and add to PATH.
+[ffmpeg.org](https://ffmpeg.org/download.html)からダウンロードし、PATHに追加してください。
 
-Verify installation:
+インストールの確認：
 ```bash
 ffmpeg -version
 ```
 
-## Setup
+## セットアップ
 
-### 1. Clone or Download the Repository
+### 1. リポジトリのクローンまたはダウンロード
 
 ```bash
 git clone <repository-url>
 cd VideoCompressorService_ver2
 ```
 
-### 2. Verify Files
+### 2. ファイルの確認
 
-Ensure the following files are present:
-- `server.py` - Server application
-- `client.py` - Client application
-- `mmp_protocol.py` - Protocol implementation
-- `ffmpeg_function.py` - Video processing functions
+以下のファイルが存在することを確認してください：
+- `server.py` - サーバーアプリケーション
+- `client.py` - クライアントアプリケーション
+- `mmp_protocol.py` - プロトコル実装
+- `ffmpeg_function.py` - 動画処理関数
 
-### 3. Configure Connection (Optional)
+### 3. 接続設定（オプション）
 
-By default, the service uses:
-- Host: `127.0.0.1` (localhost)
-- Port: `8888`
+デフォルトでは、サービスは以下を使用します：
+- ホスト：`127.0.0.1`（localhost）
+- ポート：`8888`
 
-To change these settings, edit the `__init__` methods in both `client.py` and `server.py`:
+これらの設定を変更するには、`client.py`と`server.py`の両方の`__init__`メソッドを編集してください：
 
 ```python
-self.host = "127.0.0.1"  # Change to your desired host
-self.port = 8888         # Change to your desired port
+self.host = "127.0.0.1"  # 希望のホストに変更
+self.port = 8888         # 希望のポートに変更
 ```
 
-## Usage
+## 使用方法
 
-### Starting the Server
+### サーバーの起動
 
-1. Open a terminal and navigate to the project directory
-2. Start the server:
+1. ターミナルを開き、プロジェクトディレクトリに移動します
+2. サーバーを起動します：
 
 ```bash
 python server.py
 ```
 
-You should see:
+以下のように表示されます：
 ```
 サーバー起動： ip 127.0.0.1 port 8888
 ```
 
-The server will continue running and wait for client connections. Keep this terminal open.
+サーバーは実行を続け、クライアント接続を待機します。このターミナルは開いたままにしてください。
 
-### Running the Client
+### クライアントの実行
 
-1. Open a **new terminal** (keep the server running in the first terminal)
-2. Navigate to the project directory
-3. Run the client:
+1. **新しいターミナル**を開きます（最初のターミナルでサーバーを実行したまま）
+2. プロジェクトディレクトリに移動します
+3. クライアントを実行します：
 
 ```bash
 python client.py
 ```
 
-### Using the Client Interface
+### クライアントインターフェースの使用
 
-The client provides an interactive menu to select operations:
+クライアントは操作を選択するための対話型メニューを提供します：
 
 ```
 === 処理を選択してください ===
@@ -120,43 +120,43 @@ The client provides an interactive menu to select operations:
 5. GIF/WEBM作成(trim)
 ```
 
-## Operation Details
+## 操作の詳細
 
-### 1. Compress Video
+### 1. 動画の圧縮
 
-**Purpose:** Reduce video file size while maintaining good quality.
+**目的：** 良好な品質を維持しながら動画ファイルサイズを削減します。
 
-**Steps:**
-1. Select option `1` from the menu
-2. Enter the path to your video file
-3. Wait for processing to complete
+**手順：**
+1. メニューからオプション`1`を選択
+2. 動画ファイルのパスを入力
+3. 処理が完了するまで待機
 
-**Example:**
+**例：**
 ```
 番号を入力してください (1-5): 1
 ファイルパスを入力してください: /path/to/video.mp4
 ```
 
-**Output:** Compressed video saved to `./response_data/compress_video_TIMESTAMP.mp4`
+**出力：** 圧縮された動画が`./response_data/compress_video_TIMESTAMP.mp4`に保存されます
 
-**Technical Details:**
-- Uses H.264 codec with CRF 28
-- Audio is removed to maximize compression
-- Automatically optimizes for file size reduction
+**技術詳細：**
+- CRF 28のH.264コーデックを使用
+- ファイルサイズを最大化するために音声は削除されます
+- ファイルサイズ削減のために自動的に最適化されます
 
-### 2. Resize Video Resolution
+### 2. 動画解像度の変更
 
-**Purpose:** Change video dimensions to standard resolutions.
+**目的：** 動画の寸法を標準解像度に変更します。
 
-**Steps:**
-1. Select option `2` from the menu
-2. Enter the path to your video file
-3. Choose target resolution:
-   - `1` - 1920x1080 (Full HD)
-   - `2` - 1280x720 (HD)
-   - `3` - 640x480 (SD)
+**手順：**
+1. メニューからオプション`2`を選択
+2. 動画ファイルのパスを入力
+3. ターゲット解像度を選択：
+   - `1` - 1920x1080（フルHD）
+   - `2` - 1280x720（HD）
+   - `3` - 640x480（SD）
 
-**Example:**
+**例：**
 ```
 番号を入力してください (1-5): 2
 ファイルパスを入力してください: /path/to/video.mp4
@@ -169,24 +169,24 @@ The client provides an interactive menu to select operations:
 番号を入力してください (1-3): 2
 ```
 
-**Output:** Resized video saved to `./response_data/resize_video_TIMESTAMP.mp4`
+**出力：** リサイズされた動画が`./response_data/resize_video_TIMESTAMP.mp4`に保存されます
 
-### 3. Change Aspect Ratio
+### 3. アスペクト比の変更
 
-**Purpose:** Modify video aspect ratio with different fitting modes.
+**目的：** 異なるフィッティングモードで動画のアスペクト比を変更します。
 
-**Steps:**
-1. Select option `3` from the menu
-2. Enter the path to your video file
-3. Choose target aspect ratio:
-   - `1` - 16:9 (Widescreen)
-   - `2` - 4:3 (Standard)
-   - `3` - 1:1 (Square)
-4. Choose fit mode:
-   - `1` - Letterbox (adds black bars, preserves original content)
-   - `2` - Stretch (distorts to fill frame)
+**手順：**
+1. メニューからオプション`3`を選択
+2. 動画ファイルのパスを入力
+3. ターゲットアスペクト比を選択：
+   - `1` - 16:9（ワイドスクリーン）
+   - `2` - 4:3（標準）
+   - `3` - 1:1（正方形）
+4. フィットモードを選択：
+   - `1` - レターボックス（黒い余白を追加し、元のコンテンツを保持）
+   - `2` - ストレッチ（フレームに合わせて歪める）
 
-**Example:**
+**例：**
 ```
 番号を入力してください (1-5): 3
 ファイルパスを入力してください: /path/to/video.mp4
@@ -205,43 +205,43 @@ The client provides an interactive menu to select operations:
 番号を入力してください (1-2): 1
 ```
 
-**Output:** Modified video saved to `./response_data/aspect_video_TIMESTAMP.mp4`
+**出力：** 変更された動画が`./response_data/aspect_video_TIMESTAMP.mp4`に保存されます
 
-### 4. Convert Video to Audio (MP3)
+### 4. 動画を音声に変換（MP3）
 
-**Purpose:** Extract audio track from video and save as MP3.
+**目的：** 動画から音声トラックを抽出してMP3として保存します。
 
-**Steps:**
-1. Select option `4` from the menu
-2. Enter the path to your video file
-3. Wait for processing to complete
+**手順：**
+1. メニューからオプション`4`を選択
+2. 動画ファイルのパスを入力
+3. 処理が完了するまで待機
 
-**Example:**
+**例：**
 ```
 番号を入力してください (1-5): 4
 ファイルパスを入力してください: /path/to/video.mp4
 ```
 
-**Output:** Audio file saved to `./response_data/convert_video_TIMESTAMP.mp3`
+**出力：** 音声ファイルが`./response_data/convert_video_TIMESTAMP.mp3`に保存されます
 
-**Technical Details:**
-- Uses libmp3lame codec
-- Maintains original audio quality
+**技術詳細：**
+- libmp3lameコーデックを使用
+- 元の音声品質を維持
 
-### 5. Create GIF or WEBM Clip
+### 5. GIFまたはWEBMクリップの作成
 
-**Purpose:** Extract a portion of video and convert to GIF or WEBM format.
+**目的：** 動画の一部を抽出してGIFまたはWEBM形式に変換します。
 
-**Steps:**
-1. Select option `5` from the menu
-2. Enter the path to your video file
-3. Choose output format:
+**手順：**
+1. メニューからオプション`5`を選択
+2. 動画ファイルのパスを入力
+3. 出力形式を選択：
    - `1` - GIF
    - `2` - WEBM
-4. Enter start time (format: `HH:MM:SS` or seconds)
-5. Enter duration (format: `HH:MM:SS` or seconds)
+4. 開始時間を入力（形式：`HH:MM:SS`または秒数）
+5. 継続時間を入力（形式：`HH:MM:SS`または秒数）
 
-**Example:**
+**例：**
 ```
 番号を入力してください (1-5): 5
 ファイルパスを入力してください: /path/to/video.mp4
@@ -257,220 +257,220 @@ The client provides an interactive menu to select operations:
 切り取り時間を入力してください。(例: 00:00:5 または 5): 5
 ```
 
-**Output:** Clip saved to `./response_data/trim_video_TIMESTAMP.gif` or `.webm`
+**出力：** クリップが`./response_data/trim_video_TIMESTAMP.gif`または`.webm`に保存されます
 
-**Technical Details:**
-- GIF: 10 fps, scaled to 320px width (maintains aspect ratio)
-- WEBM: Uses VP9 codec with CRF 30
+**技術詳細：**
+- GIF：10 fps、幅320pxにスケール（アスペクト比を維持）
+- WEBM：CRF 30のVP9コーデックを使用
 
-## File Locations
+## ファイルの場所
 
-### Input Files
+### 入力ファイル
 
-You can place your video files anywhere on your system. When prompted, provide the full or relative path to the file.
+動画ファイルはシステム上のどこにでも配置できます。プロンプトが表示されたら、ファイルへの完全パスまたは相対パスを指定してください。
 
-**Examples:**
-- Absolute path: `/home/user/videos/sample.mp4`
-- Relative path: `./videos/sample.mp4`
-- Current directory: `sample.mp4`
+**例：**
+- 絶対パス：`/home/user/videos/sample.mp4`
+- 相対パス：`./videos/sample.mp4`
+- 現在のディレクトリ：`sample.mp4`
 
-### Output Files
+### 出力ファイル
 
-All processed files are automatically saved to the `./response_data/` directory, which is created automatically in the same location as `client.py`.
+すべての処理済みファイルは、`client.py`と同じ場所に自動的に作成される`./response_data/`ディレクトリに自動的に保存されます。
 
-**Output file naming pattern:**
-- Compress: `compress_video_YYYYMMDD_HHMMSS.mp4`
-- Resize: `resize_video_YYYYMMDD_HHMMSS.mp4`
-- Aspect: `aspect_video_YYYYMMDD_HHMMSS.mp4`
-- Convert: `convert_video_YYYYMMDD_HHMMSS.mp3`
-- Trim: `trim_video_YYYYMMDD_HHMMSS.gif` or `.webm`
+**出力ファイルの命名パターン：**
+- 圧縮：`compress_video_YYYYMMDD_HHMMSS.mp4`
+- 解像度変更：`resize_video_YYYYMMDD_HHMMSS.mp4`
+- アスペクト比：`aspect_video_YYYYMMDD_HHMMSS.mp4`
+- 音声変換：`convert_video_YYYYMMDD_HHMMSS.mp3`
+- クリップ作成：`trim_video_YYYYMMDD_HHMMSS.gif`または`.webm`
 
-### Temporary Files
+### 一時ファイル
 
-The server stores uploaded and processed files temporarily in the `./upload/` directory. These files are automatically deleted after the response is sent to the client.
+サーバーは、アップロードされたファイルと処理済みファイルを`./upload/`ディレクトリに一時的に保存します。これらのファイルは、レスポンスがクライアントに送信された後、自動的に削除されます。
 
-## Supported File Formats
+## サポートされているファイル形式
 
-The service supports all video formats that FFmpeg supports, including:
+このサービスは、FFmpegがサポートするすべての動画形式をサポートしています：
 
-**Video Formats:**
-- MP4 (.mp4)
-- AVI (.avi)
-- MOV (.mov)
-- MKV (.mkv)
-- FLV (.flv)
-- WMV (.wmv)
-- And many more
+**動画形式：**
+- MP4（.mp4）
+- AVI（.avi）
+- MOV（.mov）
+- MKV（.mkv）
+- FLV（.flv）
+- WMV（.wmv）
+- その他多数
 
-**Output Formats:**
-- Video: MP4
-- Audio: MP3
-- Clips: GIF, WEBM
+**出力形式：**
+- 動画：MP4
+- 音声：MP3
+- クリップ：GIF、WEBM
 
-## Troubleshooting
+## トラブルシューティング
 
-### Server Won't Start
+### サーバーが起動しない
 
-**Problem:** `Address already in use` error
+**問題：** `Address already in use`エラー
 
-**Solution:** Another process is using port 8888. Either:
-1. Stop the other process
-2. Change the port in both `server.py` and `client.py`
+**解決策：** 別のプロセスがポート8888を使用しています。次のいずれかを実行してください：
+1. 他のプロセスを停止する
+2. `server.py`と`client.py`の両方でポートを変更する
 
-### Client Can't Connect
+### クライアントが接続できない
 
-**Problem:** `Connection refused` error
+**問題：** `Connection refused`エラー
 
-**Solution:**
-1. Verify the server is running
-2. Check that host and port match in both client and server
-3. Check firewall settings if using remote connection
+**解決策：**
+1. サーバーが実行されていることを確認する
+2. クライアントとサーバーの両方でホストとポートが一致していることを確認する
+3. リモート接続を使用している場合は、ファイアウォール設定を確認する
 
-### File Not Found Error
+### ファイルが見つからないエラー
 
-**Problem:** Client reports file doesn't exist
+**問題：** クライアントがファイルが存在しないと報告する
 
-**Solution:**
-1. Verify the file path is correct
-2. Use absolute paths if relative paths don't work
-3. Check file permissions
+**解決策：**
+1. ファイルパスが正しいことを確認する
+2. 相対パスが機能しない場合は絶対パスを使用する
+3. ファイルのアクセス権限を確認する
 
-### FFmpeg Errors
+### FFmpegエラー
 
-**Problem:** Processing fails with FFmpeg error
+**問題：** FFmpegエラーで処理が失敗する
 
-**Solution:**
-1. Verify FFmpeg is installed: `ffmpeg -version`
-2. Check that the input file is not corrupted
-3. Ensure the file format is supported
-4. Check server terminal for detailed error messages
+**解決策：**
+1. FFmpegがインストールされていることを確認：`ffmpeg -version`
+2. 入力ファイルが破損していないことを確認する
+3. ファイル形式がサポートされていることを確認する
+4. 詳細なエラーメッセージについてはサーバーターミナルを確認する
 
-### Processing Takes Too Long
+### 処理に時間がかかりすぎる
 
-**Problem:** Video processing is very slow
+**問題：** 動画処理が非常に遅い
 
-**Solution:**
-- Large files take longer to process
-- Compression and resolution changes are CPU-intensive
-- Consider using smaller files for testing
-- Check system resources (CPU, memory)
+**解決策：**
+- 大きなファイルは処理に時間がかかります
+- 圧縮と解像度変更はCPU集約的です
+- テストには小さなファイルの使用を検討してください
+- システムリソース（CPU、メモリ）を確認してください
 
-### Output File Quality Issues
+### 出力ファイルの品質の問題
 
-**Problem:** Compressed video quality is poor
+**問題：** 圧縮された動画の品質が悪い
 
-**Solution:**
-- Compression uses CRF 28 for good balance of size/quality
-- For higher quality, you would need to modify the FFmpeg parameters in `ffmpeg_function.py`
+**解決策：**
+- 圧縮はサイズと品質のバランスを取るためにCRF 28を使用しています
+- より高い品質が必要な場合は、`ffmpeg_function.py`のFFmpegパラメータを変更する必要があります
 
-## Advanced Configuration
+## 高度な設定
 
-### Modifying FFmpeg Parameters
+### FFmpegパラメータの変更
 
-To customize video processing parameters, edit the functions in `ffmpeg_function.py`:
+動画処理パラメータをカスタマイズするには、`ffmpeg_function.py`の関数を編集してください：
 
-**Example - Change compression quality:**
+**例 - 圧縮品質の変更：**
 ```python
-# In compress_video_file function
-# Change CRF value (lower = better quality, larger file)
-"-crf", "28",  # Change to "23" for higher quality
+# compress_video_file関数内
+# CRF値を変更（低い値 = 高品質、大きなファイル）
+"-crf", "28",  # より高品質にするには"23"に変更
 ```
 
-### Running on Different Machines
+### 異なるマシンでの実行
 
-To run the server on one machine and client on another:
+サーバーを1台のマシンで実行し、クライアントを別のマシンで実行するには：
 
-1. **On the server machine:**
-   - Edit `server.py` to bind to all interfaces:
+1. **サーバーマシン上：**
+   - すべてのインターフェースにバインドするように`server.py`を編集：
      ```python
      self.host = "0.0.0.0"
      ```
-   - Note the server's IP address
+   - サーバーのIPアドレスをメモする
 
-2. **On the client machine:**
-   - Edit `client.py` with the server's IP:
+2. **クライアントマシン上：**
+   - サーバーのIPで`client.py`を編集：
      ```python
-     self.host = "192.168.1.100"  # Server's IP address
+     self.host = "192.168.1.100"  # サーバーのIPアドレス
      ```
 
-3. Ensure firewall allows connections on port 8888
+3. ファイアウォールがポート8888での接続を許可していることを確認する
 
-## Protocol Information (MMP)
+## プロトコル情報（MMP）
 
-The service uses a custom Multiple Media Protocol (MMP) for communication:
+このサービスは通信にカスタムMultiple Media Protocol（MMP）を使用します：
 
-**Header (8 bytes):**
-- JSON size (2 bytes) - Size of JSON metadata
-- Media type size (1 byte) - Size of media type string
-- Payload size (5 bytes) - Size of file data
+**ヘッダー（8バイト）：**
+- JSONサイズ（2バイト） - JSONメタデータのサイズ
+- メディアタイプサイズ（1バイト） - メディアタイプ文字列のサイズ
+- ペイロードサイズ（5バイト） - ファイルデータのサイズ
 
-**Body (variable):**
-- JSON data - Operation instructions and parameters
-- Media type - File format (e.g., "video/mp4")
-- Payload - Binary file data
+**ボディ（可変）：**
+- JSONデータ - 操作の指示とパラメータ
+- メディアタイプ - ファイル形式（例："video/mp4"）
+- ペイロード - バイナリファイルデータ
 
-**Maximum Sizes:**
-- JSON: 65,535 bytes (64 KB)
-- Media type: 255 bytes
-- Payload: 1,099,511,627,775 bytes (~1 TB)
+**最大サイズ：**
+- JSON：65,535バイト（64 KB）
+- メディアタイプ：255バイト
+- ペイロード：1,099,511,627,775バイト（約1 TB）
 
-## Security Considerations
+## セキュリティに関する考慮事項
 
-1. **Local Use Only:** By default, the server only accepts connections from localhost (127.0.0.1)
-2. **No Authentication:** The service does not implement authentication. Do not expose to untrusted networks.
-3. **Temporary Storage:** All files are deleted after processing
-4. **File Size Limits:** Be aware of disk space when processing large files
+1. **ローカル使用のみ：** デフォルトでは、サーバーはlocalhost（127.0.0.1）からの接続のみを受け入れます
+2. **認証なし：** このサービスは認証を実装していません。信頼できないネットワークに公開しないでください
+3. **一時ストレージ：** すべてのファイルは処理後に削除されます
+4. **ファイルサイズ制限：** 大きなファイルを処理する際はディスク容量に注意してください
 
-## Performance Notes
+## パフォーマンスに関する注意事項
 
-- The server can handle multiple operations sequentially
-- Each operation runs in a separate thread to avoid blocking
-- Processing time depends on:
-  - File size
-  - Video resolution
-  - Operation type
-  - System CPU performance
+- サーバーは複数の操作を順次処理できます
+- 各操作はブロッキングを避けるために別のスレッドで実行されます
+- 処理時間は以下に依存します：
+  - ファイルサイズ
+  - 動画解像度
+  - 操作タイプ
+  - システムCPUパフォーマンス
 
-## Stopping the Service
+## サービスの停止
 
-### Stop the Client
+### クライアントの停止
 
-The client automatically disconnects after each operation completes.
+クライアントは各操作の完了後に自動的に切断されます。
 
-### Stop the Server
+### サーバーの停止
 
-Press `Ctrl+C` in the server terminal:
+サーバーターミナルで`Ctrl+C`を押してください：
 ```
 ^C
 サーバーを停止しました
 ```
 
-## Example Workflow
+## 使用例のワークフロー
 
-Here's a complete example of compressing a video:
+動画を圧縮する完全な例：
 
-1. **Start the server:**
+1. **サーバーを起動：**
    ```bash
    python server.py
    ```
-   Output: `サーバー起動： ip 127.0.0.1 port 8888`
+   出力：`サーバー起動： ip 127.0.0.1 port 8888`
 
-2. **Run the client (in a new terminal):**
+2. **クライアントを実行（新しいターミナルで）：**
    ```bash
    python client.py
    ```
 
-3. **Select compress operation:**
+3. **圧縮操作を選択：**
    ```
    番号を入力してください (1-5): 1
    ```
 
-4. **Enter file path:**
+4. **ファイルパスを入力：**
    ```
    ファイルパスを入力してください: ./my_video.mp4
    ```
 
-5. **Wait for processing:**
+5. **処理を待機：**
    ```
    サーバーに接続中 host: 127.0.0.1 port: 8888
    サーバーとの疎通確認が完了しました。
@@ -479,20 +479,20 @@ Here's a complete example of compressing a video:
    圧縮ファイルを ./response_data/compress_video_20231027_153045.mp4 へ保存しました
    ```
 
-6. **Find your processed video:**
+6. **処理済み動画を確認：**
    ```bash
    ls ./response_data/
    ```
 
-## Getting Help
+## ヘルプの入手
 
-If you encounter issues not covered in this guide:
+このガイドでカバーされていない問題が発生した場合：
 
-1. Check the server terminal for detailed error messages
-2. Verify all requirements are installed correctly
-3. Test with a small, simple video file first
-4. Ensure FFmpeg is working: `ffmpeg -version`
+1. 詳細なエラーメッセージについてはサーバーターミナルを確認してください
+2. すべての要件が正しくインストールされていることを確認してください
+3. まず小さくてシンプルな動画ファイルでテストしてください
+4. FFmpegが動作していることを確認：`ffmpeg -version`
 
-## License and Credits
+## ライセンスとクレジット
 
-This service uses FFmpeg for all video processing operations. FFmpeg is licensed under the LGPL or GPL depending on configuration.
+このサービスはすべての動画処理操作にFFmpegを使用しています。FFmpegは設定に応じてLGPLまたはGPLの下でライセンスされています。
