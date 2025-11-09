@@ -166,37 +166,22 @@ class Client:
         else:
             return media_type
 
-    async def upload_video_file(self, file_path: str) -> None:
+    async def upload_video_file(self, operation: str, file_path: str, parameters: dict) -> None:
         """
         サーバーへ動画ファイルをアップロード
 
         Args
-            file_path [str] ファイルパス（例）video.mp4
+            operation [str] 処理内容
+            file_path [str] ファイルパス
+            parameters dict[str, str] 追加パラメーター
         """
-        # アップロードファイルの存在確認
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"ファイルが見つかりません: {file_path}")
 
-        # 指示データの作成
-        # 圧縮
-        # json_data = {
-        #     "action": "upload",
-        #     "file_name": os.path.basename(file_path),
-        #     "operation": "compress"
-        # }
-
-        # コンバート
+        # json作成
         json_data = {
             "action": "upload",
             "file_name": os.path.basename(file_path),
-            "operation": "convert",
-        }
-
-        # 解像度変更
-        json_data = {
-            "action": "upload",
-            "file_name": os.path.basename(file_path),
-            "operation": "resize",
+            "operation": operation,
+            "parameters": parameters
         }
 
         # メディアタイプを取得
@@ -211,6 +196,156 @@ class Client:
 
         # リクエストデータの送信
         await self.send_request(header_data_bytes=header_data_bytes, body_data_bytes=body_data_bytes)
+
+    async def get_user_input(self):
+        """
+        ユーザーから対話形式で入力を受け取る
+
+        Returns
+            [tuple] (operation, file_path, parameters)
+        """
+
+        print("\n=== 処理を選択してください ===")
+        print("1. 圧縮(compress)")
+        print("2. 解像度変更(resize)")
+        print("3. アスペクト比変更(aspect)")
+        print("4. 音声抽出(convert)")
+        print("5. GIF/WEBM作成(trim)")
+
+        operations: dict[str, str] = {
+            "1": "compress",
+            "2": "resize",
+            "3": "aspect",
+            "4": "convert",
+            "5": "trim"
+        }
+
+        # 選択内容の入力
+        operation: str | None = ""
+        while True:
+            choice: str= input("\n番号を入力してください (1-5):").strip()
+
+            # 入力内容の確認
+            if choice != "":
+                operation = operations.get(choice)
+
+                if operation is not None:
+                    break
+                else:
+                    print("エラー: 番号1~5を入力してください")
+            else:
+                print("エラー: 未入力です")
+
+        # アップロードファイルの入力
+        file_path: str = ""
+        while True:
+            file_path = input("\nファイルパスを入力してください:").strip()
+
+            # 入力内容確認
+            if file_path != "":
+                # ファイルの存在確認
+                if not os.path.exists(file_path):
+                    print("ファイルが存在しません")
+                else:
+                    break
+            else:
+                print("エラー: 未入力です")
+
+        parameters: dict[str, str] = {}
+        # 追加パラメーターの設定
+        if operation == "resize": # 解像度変更
+            print("\n===解像度を選択してください")
+            print("1. 1900*1080")
+            print("2. 1280*720")
+            print("3. 640*480")
+            while True:
+                choice: str= input("\n番号を入力してください (1-3):").strip()
+                # 未入力の確認
+                if choice != "":
+                    # 入力内容の確認
+                    if choice in ["1", "2", "3"]:
+                        parameters["size"] = choice
+                        break
+                    else:
+                        print("エラー: 番号1~3を入力してください")
+                else:
+                    print("エラー: 未入力です")
+
+        elif operation == "aspect": # アスペクト比変更
+            print("\n===アスペクト比を選択してください")
+            print("1. 16:9")
+            print("2. 4:3")
+            print("3. 1:1")
+            while True:
+                choice: str= input("\n番号を入力してください (1-3):").strip()
+                # 未入力の確認
+                if choice != "":
+                    # 入力内容の確認
+                    if choice in ["1", "2", "3"]:
+                        parameters["ratio"] = choice
+                        break
+                    else:
+                        print("エラー: 番号1~3を入力してください")
+                else:
+                    print("エラー: 未入力です")
+
+            print("\n===フィット方法を選択してください")
+            print("1. letterbox: 元の映像を維持し、余白を黒で埋める")
+            print("2. stretch: 元の映像を引き延ばして目標アスペクト比に合わせる")
+            while True:
+                choice: str= input("\n番号を入力してください (1-2):").strip()
+                # 未入力の確認
+                if choice != "":
+                    # 入力内容の確認
+                    if choice in ["1", "2"]:
+                        parameters["fit_mode"] = choice
+                        break
+                    else:
+                        print("エラー: 番号1~2を入力してください")
+                else:
+                    print("エラー: 未入力です")
+
+        elif operation == "trim": # gif or webmの作成
+            print("\n===GIF or WEBMを選択してください")
+            print("1. GIF")
+            print("2. WEBM")
+            while True:
+                choice: str= input("\n番号を入力してください (1-2):").strip()
+                # 未入力の確認
+                if choice != "":
+                    # 入力内容の確認
+                    if choice in ["1", "2"]:
+                        if choice == "1":
+                            parameters["type"] = "gif"
+                        else:
+                            parameters["type"] = "webm"
+                        break
+                    else:
+                        print("エラー: 番号1~2を入力してください")
+                else:
+                    print("エラー: 未入力です")
+
+            while True:
+                choice: str= input("\n切り取りを始める開始時間を入力してください。(例: 00:00:10 または 10):").strip()
+                # 未入力の確認
+                if choice != "":
+                    parameters["start_time"] = choice
+                    break
+                else:
+                    print("エラー: 未入力です")
+
+            while True:
+                choice: str= input("\n切り取り時間を入力してください。(例: 00:00:5 または 5):").strip()
+                # 未入力の確認
+                if choice != "":
+                    parameters["duration"] = choice
+                    break
+                else:
+                    print("エラー: 未入力です")
+
+        return operation, file_path, parameters
+
+
 
     async def response_data_analysis(self):
         """
@@ -238,6 +373,24 @@ class Client:
                         f.write(response_payload)
                         print(f"圧縮ファイルを {save_file_path} へ保存しました")
 
+                case "resize": # 解像度変更
+                    # レスポンスデータの保存パスを作成
+                    save_file_path = await self.save_file_path_creation(operation=operation)
+
+                    # 解像度変更されたレスポンスデータを書き込む
+                    with open(save_file_path, mode="wb") as f:
+                        f.write(response_payload)
+                        print(f"解像度が変更されたファイルを {save_file_path} へ保存しました")
+
+                case "aspect": # アスペクト比変更
+                    # レスポンスデータの保存パスを作成
+                    save_file_path = await self.save_file_path_creation(operation=operation)
+
+                    # アスペクト比変更されたレスポンスデータを書き込む
+                    with open(save_file_path, mode="wb") as f:
+                        f.write(response_payload)
+                        print(f"アスペクト比が変更されたファイルを {save_file_path} へ保存しました")
+
                 case "convert": # コンバート
                     # レスポンスデータの保存パスを作成
                     save_file_path = await self.save_file_path_creation(operation=operation)
@@ -247,38 +400,42 @@ class Client:
                         f.write(response_payload)
                         print(f"コンバートファイルを {save_file_path} へ保存しました")
 
-                case "resize": # 解像度変更
+                case "trim": # gif or webm
                     # レスポンスデータの保存パスを作成
-                    save_file_path = await self.save_file_path_creation(operation=operation)
+                    save_file_path = await self.save_file_path_creation(operation=operation, media_type=response_media_type)
 
-                    # 解像度変更されたレスポンスデータを書き込む
+                    # コンバートされたレスポンスデータを書き込む
                     with open(save_file_path, mode="wb") as f:
                         f.write(response_payload)
                         print(f"コンバートファイルを {save_file_path} へ保存しました")
 
-
         elif response_json.get("status") == "error":
             print("エラーが発生しました")
 
-    async def upload_and_receive(self, file_path: str):
+    async def upload_and_receive(self):
         """
-        アップロードから受信と解析までの処理
+        アップロード処理
+
+        レスポンスデータ受信と解析
         """
+        # ユーザーの入力処理
+        operation, file_path, parameters = await self.get_user_input()
+
         # サーバーへファイルアップロード処理
-        await self.upload_video_file(file_path=file_path)
+        await self.upload_video_file(operation=operation, file_path=file_path, parameters=parameters)
 
         # サーバーからのレスポンスデータの受信と解析
         await self.response_data_analysis()
 
-    async def save_file_path_creation(self, operation: str) -> str:
+    async def save_file_path_creation(self, operation: str, media_type: str = "") -> str:
         """
         保存場所の作成をするヘルパーメソッド
-        - 指示内容ごとに保存用ファイル名を作成
-        - ファイル名には秒まで含む日付データを連結させる
+            指示内容ごとに保存用ファイル名を作成
+            ファイル名には秒まで含む日付データを連結させる
 
         Args
             operation [str] 指示内容 (例: compress, convert...)
-
+            media_type [str] ファイルの種類 (例: video/mp3, video/mp4, video/gif)
         Returns
             save_file_path [str] ファイルの保存先
         """
@@ -290,14 +447,26 @@ class Client:
                 save_file_name = f"compressed_video_{time_stamp_str}.mp4"
                 save_file_path = os.path.join(self.response_dir, save_file_name)
 
-            case "convert": # コンバート
-                save_file_name = f"converted_video_{time_stamp_str}.mp3"
-                save_file_path = os.path.join(self.response_dir, save_file_name)
-
             case "resize": # 解像度変更
                 save_file_name = f"resized_video_{time_stamp_str}.mp4"
                 save_file_path = os.path.join(self.response_dir, save_file_name)
 
+            case "aspect": # アスペクト比変更
+                save_file_name = f"changed_aspect_video_{time_stamp_str}.mp4"
+                save_file_path = os.path.join(self.response_dir, save_file_name)
+
+            case "convert": # コンバート
+                save_file_name = f"converted_video_{time_stamp_str}.mp3"
+                save_file_path = os.path.join(self.response_dir, save_file_name)
+
+            case "trim": # gif or webm
+                if media_type != "":
+                    if media_type == "video/gif":
+                        save_file_name = f"changed_gif_video_{time_stamp_str}.gif"
+                        save_file_path = os.path.join(self.response_dir, save_file_name)
+                    elif media_type == "video/webm":
+                        save_file_name = f"changed_webm_video_{time_stamp_str}.webm"
+                        save_file_path = os.path.join(self.response_dir, save_file_name)
 
         return save_file_path
 
@@ -339,7 +508,7 @@ class Client:
             await self.execute_request(self.send_ping)
 
             # サーバーへファイルをアップロード処理とレスポンスデータの受信と解析
-            await self.execute_request(self.upload_and_receive, file_path="./test/Azki_2.mp4")
+            await self.execute_request(self.upload_and_receive)
 
         except Exception as e:
             print(f"{inspect.currentframe().f_code.co_name}関数でエラー発生") # type: ignore
@@ -347,4 +516,7 @@ class Client:
 
 if __name__ == "__main__":
     client = Client()
-    asyncio.run(client.main())
+    try:
+        asyncio.run(client.main())
+    except KeyboardInterrupt:
+        print("\nサーバーへの接続を終了します")

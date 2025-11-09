@@ -2,8 +2,13 @@ import inspect
 import subprocess
 
 
-def compress_video_file(input_path: str, crf_number: str, output_path: str) -> bool:
-    """ファイルパスを指定して動画を圧縮する"""
+def compress_video_file(input_path: str, output_path: str) -> bool:
+    """動画を圧縮する
+
+    Args
+        input_path [str] 入力動画ファイルパス
+        output_path [str] 出力動画ファイルパス
+    """
     try:
         result = subprocess.run(
             [
@@ -13,7 +18,7 @@ def compress_video_file(input_path: str, crf_number: str, output_path: str) -> b
                 "-vcodec",
                 "libx264",
                 "-crf",
-                crf_number,
+                "28",
                 "-preset",
                 "medium",
                 "-tune",
@@ -39,7 +44,13 @@ def compress_video_file(input_path: str, crf_number: str, output_path: str) -> b
 
 
 def resize_video_resolution(input_path: str, resolution: str, output_path: str) -> bool:
-    """動画の解像度を変更する"""
+    """動画の解像度を変更する
+
+    Args
+        input_path [str] 入力動画ファイルパス
+        resolution [str] 変更したい解像度 (例: "1" 1900*1080 "2" 1280*720 "3" 640*480)
+        output_path [str] 出力動画ファイルパス
+    """
     try:
         if resolution == "1":
             width = 1920
@@ -92,15 +103,15 @@ def change_video_aspect_ratio(input_path: str, aspect_ratio: str, output_path: s
     """動画のアスペクト比を変更する
 
     Args
-        input_path: 入力動画ファイルパス
-        aspect_ratio: 目標アスペクト比 ("16:9", "4:3", "1:1" など)
-        output_path: 出力動画ファイルパス
-        fit_mode: フィット方法
-            - "letterbox": 元の映像を維持し、余白を黒で埋める
-            - "crop": 元の映像をクロップして目標アスペクト比に合わせる
-            - "stretch": 元の映像を引き延ばして目標アスペクト比に合わせる
+        input_path [str] 入力動画ファイルパス
+        aspect_ratio [str] アスペクト比 "1" (16:9), "2" (4:3), "3" (1:1)
+        output_path [str] 出力動画ファイルパス
+        fit_mode [str] フィット方法
+            "1" (letterbox: 元の映像を維持し、余白を黒で埋める)
+            "2" ("stretch: 元の映像を引き延ばして目標アスペクト比に合わせる)
     """
 
+    # アスペクト比の設定
     if aspect_ratio == "1":
         width_ratio = 16
         height_ratio = 9
@@ -119,13 +130,10 @@ def change_video_aspect_ratio(input_path: str, aspect_ratio: str, output_path: s
             # letterbox: 元の映像を維持し、余白を黒で埋める
             scale_filter = f"scale=iw*min(1\\,if(sar\\,1/sar\\,1)*{target_aspect}/dar):ih*min(1\\,dar/({target_aspect}*if(sar\\,sar\\,1))),pad=iw*{target_aspect}/dar:ih:x=(ow-iw)/2:y=(oh-ih)/2:color=black"
         elif fit_mode == "2":
-            # crop: 元の映像をクロップして目標アスペクト比に合わせる
-            scale_filter = f"scale=iw*max(1\\,if(sar\\,1/sar\\,1)*{target_aspect}/dar):ih*max(1\\,dar/({target_aspect}*if(sar\\,sar\\,1))),crop=iw*{target_aspect}/dar:ih"
-        elif fit_mode == "3":
             # stretch: 元の映像を引き延ばして目標アスペクト比に合わせる
             scale_filter = f"scale=iw:ih,setsar={aspect_ratio}"
         else:
-            print(f"不正なfit_mode: {fit_mode}. 'letterbox', 'crop', 'stretch'のいずれかを指定してください")
+            print(f"不正なfit_mode: {fit_mode}. 'letterbox', 'stretch'のいずれかを指定してください")
             return False
 
         result = subprocess.run(
@@ -162,8 +170,12 @@ def change_video_aspect_ratio(input_path: str, aspect_ratio: str, output_path: s
         return False
 
 
-def convert_to_mp3file(input_path: str, output_path: str, target_format: str) -> bool:
-    """MP3形式へ変換する"""
+def convert_to_mp3file(input_path: str, output_path: str) -> bool:
+    """MP3形式へ変換する
+
+        input_path [str] 入力動画ファイルパス
+        output_path [str] 出力動画ファイルパス
+    """
     try:
         result = subprocess.run(
             [
@@ -174,7 +186,7 @@ def convert_to_mp3file(input_path: str, output_path: str, target_format: str) ->
                 "-acodec",
                 "libmp3lame",
                 "-f",
-                target_format,
+                "mp3",
                 output_path,
             ],
             capture_output=True,
@@ -202,14 +214,14 @@ def trim_video_to_gif_webm(
     """時間範囲を指定して動画を切り取り、GIFまたはWEBMフォーマットに変換する
 
     Args
-        input_path: 入力動画ファイルのパス
-        start_time: 開始時間 (例: "00:00:10" または "10")
-        duration: 切り取り時間の長さ (例: "00:00:05" または "5")
-        output_path: 出力ファイルのパス
-        output_format: 出力フォーマット ("gif" または "webm")
+        input_path [str] 入力動画ファイルのパス
+        start_time [str] 開始時間 (例: "00:00:10" または "10")
+        duration [str] 切り取り時間の長さ (例: "00:00:05" または "5")
+        output_path [str] 出力ファイルのパス
+        output_format [str] 出力フォーマット ("gif" または "webm")
 
     Returns
-        bool: 成功時True、失敗時False
+        [bool] 成功時True、失敗時False
     """
     try:
         if output_format.lower() == "gif": # GIF変換用のffmpegコマンド

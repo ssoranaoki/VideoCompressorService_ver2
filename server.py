@@ -79,7 +79,6 @@ class Server:
                 # ファイル名が存在しない場合はエラー内容をレスポンス
                 if upload_file_name is None:
                     response_json, response_media_type, response_payload = self.create_error_response()
-
                 else:
                     # ファイルの保存先のフルパスを作成
                     upload_file_path = os.path.join(self.upload_dir, upload_file_name)
@@ -107,7 +106,6 @@ class Server:
                                 success = await asyncio.to_thread(
                                     ffmpeg_function.compress_video_file,
                                     upload_file_path, # input_path
-                                    "28",             # crf_number
                                     output_file_path  # output_path
                                 )
 
@@ -122,6 +120,69 @@ class Server:
                                     # エラー内容レスポンス
                                     response_json, response_media_type, response_payload = self.create_error_response()
 
+                            case "resize": # 解像度変更
+                                # 出力ファイルパスの作成
+                                output_file_name = f"resize_video_{self.time_stamp_str}.mp4"
+                                output_file_path = os.path.join(self.upload_dir, output_file_name)
+
+                                # パラメーターの内容確認
+                                parameters = json_data.get("parameters")
+                                if parameters is not None:
+
+                                    # ファイルパスの保存
+                                    tmp_files_path.append(output_file_path)
+
+                                    # 別スレッドで解像度変更を実行
+                                    success = await asyncio.to_thread(
+                                        ffmpeg_function.resize_video_resolution,
+                                        upload_file_path,   # input_path
+                                        parameters["size"], # target_format
+                                        output_file_path    # output_path
+                                    )
+
+                                    # 結果を確認
+                                    if success:
+                                        # 処理されたファイルデータをレスポンスに含める
+                                        with open(output_file_path, mode="rb") as f:
+                                            # レスポンス作成
+                                            response_json, response_media_type, response_payload = self.create_success_response(operation="resize", media_type="video/mp4", payload=f.read())
+                                            print(f"{upload_file_name} の解像度変更に成功")
+                                    else:
+                                        # エラー内容レスポンス
+                                        response_json, response_media_type, response_payload = self.create_error_response()
+
+                            case "aspect": # アスペクト比変更
+                                # 出力ファイルパスの作成
+                                output_file_name = f"change_aspect_video_{self.time_stamp_str}.mp4"
+                                output_file_path = os.path.join(self.upload_dir, output_file_name)
+
+                                # パラメーターの内容確認
+                                parameters = json_data.get("parameters")
+                                if parameters is not None:
+
+                                    # ファイルパスの保存
+                                    tmp_files_path.append(output_file_path)
+
+                                    # 別スレッドでアスペクト比変更を実行
+                                    success = await asyncio.to_thread(
+                                        ffmpeg_function.change_video_aspect_ratio,
+                                        upload_file_path,       # input_path
+                                        parameters["ratio"],    # aspect_ratio
+                                        output_file_path,       # output_path
+                                        parameters["fit_mode"]  # fit_mode
+                                    )
+
+                                    # 結果を確認
+                                    if success:
+                                        # 処理されたファイルデータをレスポンスに含める
+                                        with open(output_file_path, mode="rb") as f:
+                                            # レスポンス作成
+                                            response_json, response_media_type, response_payload = self.create_success_response(operation="aspect", media_type="video/mp4", payload=f.read())
+                                            print(f"{upload_file_name} のアスペクト比変更に成功")
+                                    else:
+                                        # エラー内容レスポンス
+                                        response_json, response_media_type, response_payload = self.create_error_response()
+
                             case "convert": # コンバート
                                 # 出力ファイルパスの作成
                                 output_file_name = f"converted_video_{self.time_stamp_str}.mp3"
@@ -135,7 +196,6 @@ class Server:
                                     ffmpeg_function.convert_to_mp3file,
                                     upload_file_path, # input_path
                                     output_file_path, # output_path
-                                    "mp3"             # target_format
                                 )
 
                                 # 結果を確認
@@ -149,29 +209,47 @@ class Server:
                                     # エラー内容レスポンス
                                     response_json, response_media_type, response_payload = self.create_error_response()
 
-                            case "resize": # 解像度変更
-                                # 出力ファイルパスの作成
-                                output_file_name = f"resize_video_{self.time_stamp_str}.mp4"
-                                output_file_path = os.path.join(self.upload_dir, output_file_name)
+                            case "trim": # gif or webmの作成
+                                # パラメーターの内容確認
+                                parameters: str | None = json_data.get("parameters")
 
-                                # ファイルパスの保存
-                                tmp_files_path.append(output_file_path)
+                                # パラメーターの内容確認
+                                if parameters is not None:
+                                    # 出力ファイルパスの作成
+                                    if parameters["type"] == "gif":
+                                        output_file_name = f"changed_gif_video_{self.time_stamp_str}.gif"
+                                        output_file_path = os.path.join(self.upload_dir, output_file_name)
+                                    elif parameters["type"] == "webm":
+                                        output_file_name = f"changed_webm_video_{self.time_stamp_str}.webm"
+                                        output_file_path = os.path.join(self.upload_dir, output_file_name)
 
-                                # 別スレッドで解像度変更を実行
-                                success = await asyncio.to_thread(
-                                    ffmpeg_function.resize_video_resolution,
-                                    upload_file_path, # input_path
-                                    "1",              # target_format
-                                    output_file_path  # output_path
-                                )
+                                    # ファイルパスの保存
+                                    tmp_files_path.append(output_file_path)
 
-                                # 結果を確認
-                                if success:
-                                    # 処理されたファイルデータをレスポンスに含める
-                                    with open(output_file_path, mode="rb") as f:
-                                        # レスポンス作成
-                                        response_json, response_media_type, response_payload = self.create_success_response(operation="resize", media_type="video/mp4", payload=f.read())
-                                        print(f"{upload_file_name} の解像度変更に成功")
+                                    # 別スレッドでgif or webmの作成を実行
+                                    success = await asyncio.to_thread(
+                                        ffmpeg_function.trim_video_to_gif_webm,
+                                        upload_file_path,          # input_path
+                                        parameters["start_time"],  # start_time
+                                        parameters["duration"],    # duration
+                                        output_file_path,          # output_path
+                                        parameters["type"]         # output_format
+                                    )
+
+                                    # 結果を確認
+                                    if success:
+                                        # コンバート済ファイルを読み込んでレスポンスに含める
+                                        with open(output_file_path, mode="rb") as f:
+                                            # レスポンス作成
+                                            response_json, response_media_type, response_payload = self.create_success_response(
+                                                operation="trim",
+                                                media_type=f"video/{parameters["type"]}",
+                                                payload=f.read()
+                                            )
+                                            print(f"{upload_file_name} を{parameters["type"]}形式へコンバートに成功")
+                                    else:
+                                        # エラー内容レスポンス
+                                        response_json, response_media_type, response_payload = self.create_error_response()
                                 else:
                                     # エラー内容レスポンス
                                     response_json, response_media_type, response_payload = self.create_error_response()
@@ -182,6 +260,8 @@ class Server:
                         print(f"エラー内容: {e}")
                         # エラー内容レスポンス
                         response_json, response_media_type, response_payload = self.create_error_response()
+
+
 
         # JSONサイズ
         response_json_string = json.dumps(response_json)
@@ -222,14 +302,11 @@ class Server:
         """
         サーバーを起動する
         """
-        try:
-            server: asyncio.Server = await asyncio.start_server(self.handle_client, self.host, self.port)
-            print(f"サーバー起動： ip {self.host} port {self.port}")
+        server: asyncio.Server = await asyncio.start_server(self.handle_client, self.host, self.port)
+        print(f"サーバー起動： ip {self.host} port {self.port}")
 
-            async with server:
-                await server.serve_forever()
-        except KeyboardInterrupt:
-            server.close()
+        async with server:
+            await server.serve_forever()
 
     async def clean_up_files(self, tmp_files_path: list):
         """
@@ -286,8 +363,9 @@ class Server:
 
         return response_json, response_media_type, response_payload
 
-
-
 if __name__ == "__main__":
     server = Server()
-    asyncio.run(server.server_start())
+    try:
+        asyncio.run(server.server_start())
+    except KeyboardInterrupt:
+        print("\nサーバーを停止しました")
